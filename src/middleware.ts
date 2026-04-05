@@ -6,10 +6,9 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const token = req.nextauth?.token as any;
 
-    // Protect admin routes
+    // Protege /admin
     if (pathname.startsWith('/admin')) {
       if (!token || token.role !== 'admin') {
-        // Fetch user role from token (set in jwt callback)
         return NextResponse.redirect(new URL('/', req.url));
       }
     }
@@ -20,12 +19,8 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
-        // Admin requires token
-        if (pathname.startsWith('/admin')) return !!token;
-        // Orders require token
-        if (pathname.startsWith('/orders')) return !!token;
-        // Checkout requires token
-        if (pathname.startsWith('/checkout')) return true; // handled client-side
+        if (pathname.startsWith('/admin'))   return !!token;
+        if (pathname.startsWith('/orders'))  return !!token;
         return true;
       },
     },
@@ -33,5 +28,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ['/admin/:path*', '/orders/:path*'],
+  matcher: ['/', '/admin/:path*', '/orders/:path*'],
 };

@@ -17,43 +17,71 @@ export const authOptions: NextAuthOptions = {
       try {
         const supabase = createAdminClient();
         const role = user.email === ADMIN_EMAIL ? 'admin' : 'user';
-        const { error } = await supabase.from('users').upsert({
-          email: user.email,
-          name:  user.name  || 'Usuário',
-          image: user.image || null,
-          role,
-        }, { onConflict: 'email', ignoreDuplicates: false });
-        if (error) console.error('Supabase upsert error:', error);
+
+        const { data: existing } = await supabase
+          .from('users')
+          .select('id, role')
+          .eq('email', user.email)
+          .single();
+
+        if (existing) {
+          await supabase
+            .from('users')
+            .update({
+              name:  user.name  || 'Usuário',
+              image: user.image || null,
+              role:  user.email === ADMIN_EMAIL ? 'admin' : existing.role,
+            })
+            .eq('email', user.email);
+        } else {
+          await supabase.from('users').insert({
+            email: user.email,
+            name:  user.name  || 'Usuário',
+            image: user.image || null,
+            role,
+          });
+        }
       } catch (err) {
         console.error('signIn callback error:', err);
       }
       return true;
     },
 
-    async session({ session, token }) {
-      if (session.user?.email) {
+    async jwt({ token, user }) {
+      // No primeiro login, busca role no Supabase e salva no token
+      if (user?.email) {
         const supabase = createAdminClient();
         const { data } = await supabase
           .from('users')
           .select('id, role')
-          .eq('email', session.user.email)
+          .eq('email', user.email)
           .single();
         if (data) {
-          (session.user as any).id   = data.id;
-          (session.user as any).role = data.role;
+          token.id   = data.id;
+          token.role = data.role;
         }
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      // Pega role do token JWT (não faz query ao Supabase toda vez)
+      if (token) {
+        (session.user as any).id   = token.id;
+        (session.user as any).role = token.role;
       }
       return session;
     },
 
-    async jwt({ token, user }) {
-      if (user) token.email = user.email;
-      return token;
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith(baseUrl)) return url;
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      return baseUrl;
     },
   },
   pages: {
-    signIn:   '/auth/signin',
-    error:    '/auth/error',
+    signIn: '/auth/signin',
+    error:  '/auth/error',
   },
   session: { strategy: 'jwt' },
   secret: process.env.NEXTAUTH_SECRET,
