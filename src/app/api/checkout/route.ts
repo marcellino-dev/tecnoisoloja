@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/server';
 import { mpPreference } from '@/lib/mercadopago';
 import { CartItem, ShippingAddress } from '@/types';
@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
   const total    = items.reduce((acc, i) => acc + i.product.price * i.quantity, 0);
   const supabase = createAdminClient();
 
-  // Registra o pedido com status inicial pending
   const { data: order, error: orderErr } = await supabase
     .from('orders')
     .insert({ user_id: userId, total, shipping_address, status: 'pending' })
@@ -37,7 +36,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: orderErr.message }, { status: 500 });
   }
 
-  // Registra os itens vinculados ao pedido
   const orderItems = items.map(i => ({
     order_id:      order.id,
     product_id:    i.product.id,
@@ -53,10 +51,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: itemsErr.message }, { status: 500 });
   }
 
-  // Gera a preferencia de pagamento no Mercado Pago
   try {
-    const phoneDigits = shipping_address.phone?.replace(/\D/g, '') || '';
-    const appUrl      = process.env.NEXT_PUBLIC_APP_URL!;
+    const phoneDigits  = shipping_address.phone?.replace(/\D/g, '') || '';
+    const appUrl       = process.env.NEXT_PUBLIC_APP_URL!;
     const isProduction = process.env.NODE_ENV === 'production';
 
     const preference = await mpPreference.create({
@@ -91,9 +88,7 @@ export async function POST(req: NextRequest) {
           failure: `${appUrl}/checkout/failure?order=${order.id}`,
           pending: `${appUrl}/checkout/pending?order=${order.id}`,
         },
-        // auto_return so funciona com URLs publicas — desabilitado em desenvolvimento
         ...(isProduction && { auto_return: 'approved' }),
-        // notification_url so funciona com URLs publicas — desabilitado em desenvolvimento
         ...(isProduction && {
           notification_url: `${appUrl}/api/webhooks/mercadopago`,
         }),
@@ -101,7 +96,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Persiste o preference_id para rastreamento e reconciliacao de pagamentos
     await supabase
       .from('orders')
       .update({ mp_preference_id: preference.id })
