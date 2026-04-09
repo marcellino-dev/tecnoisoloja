@@ -231,7 +231,7 @@ export function Header() {
 
               {catMenuOpen && (
                 <div className="absolute left-0 top-full mt-1 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-1 animate-slide-down">
-                  {CATEGORIES.map(cat => (
+                  {CATEGORIES.map((cat: any) => (
                     <Link
                       key={cat.slug}
                       href={`/products?category=${cat.slug}`}

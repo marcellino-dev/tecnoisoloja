@@ -91,7 +91,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                       Todas
                     </a>
                   </li>
-                  {categories.map(cat => (
+                {categories.map((cat: any) => (  
                     <li key={cat.id}>
                       <a
                         href={`/products?category=${cat.slug}`}
