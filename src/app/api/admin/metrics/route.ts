@@ -18,10 +18,9 @@ export async function GET() {
   ]);
 
   const allOrders = orders.data || [];
-  const paidOrders   = allOrders.filter(o => o.status === 'paid');
-  const pendingOrders = allOrders.filter(o => o.status === 'pending');
-  const totalRevenue = paidOrders.reduce((acc, o) => acc + Number(o.total), 0);
-
+const paidOrders   = allOrders.filter((o: any) => o.status === 'paid');
+const pendingOrders = allOrders.filter((o: any) => o.status === 'pending');
+const totalRevenue = paidOrders.reduce((acc: number, o: any) => acc + Number(o.total), 0);
   const recentOrders = await supabase
     .from('orders')
     .select('*, user:users(name,email)')
