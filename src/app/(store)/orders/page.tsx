@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { formatPrice, formatDate, ORDER_STATUS_LABELS } from '@/lib/utils';
