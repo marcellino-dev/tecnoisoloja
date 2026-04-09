@@ -5,7 +5,6 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { mpPreference } from '@/lib/mercadopago';
 import { CartItem, ShippingAddress } from '@/types';
 
-// Cria o pedido no banco e gera a preferencia de pagamento no Mercado Pago.
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -52,9 +51,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const phoneDigits  = shipping_address.phone?.replace(/\D/g, '') || '';
-    const appUrl       = process.env.NEXT_PUBLIC_APP_URL!;
-    const isProduction = process.env.NODE_ENV === 'production';
+    const phoneDigits = shipping_address.phone?.replace(/\D/g, '') || '';
+    const appUrl      = process.env.NEXT_PUBLIC_APP_URL!;
 
     const preference = await mpPreference.create({
       body: {
@@ -88,10 +86,8 @@ export async function POST(req: NextRequest) {
           failure: `${appUrl}/checkout/failure?order=${order.id}`,
           pending: `${appUrl}/checkout/pending?order=${order.id}`,
         },
-        ...(isProduction && { auto_return: 'approved' }),
-        ...(isProduction && {
-          notification_url: `${appUrl}/api/webhooks/mercadopago`,
-        }),
+        auto_return: 'approved',
+        notification_url: `${appUrl}/api/webhooks/mercadopago`,
         statement_descriptor: 'TECNOISO',
       },
     });
@@ -103,10 +99,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       data: {
-        order_id:           order.id,
-        preference_id:      preference.id,
-        init_point:         preference.init_point,
-        sandbox_init_point: preference.sandbox_init_point,
+        order_id:      order.id,
+        preference_id: preference.id,
+        init_point:    preference.init_point,
       },
     }, { status: 201 });
 
@@ -117,4 +112,4 @@ export async function POST(req: NextRequest) {
       error: 'Erro ao iniciar pagamento. Tente novamente.',
     }, { status: 500 });
   }
-}
+} 
