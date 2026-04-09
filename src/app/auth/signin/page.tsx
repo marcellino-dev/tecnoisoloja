@@ -3,21 +3,19 @@
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Zap } from 'lucide-react';
+import { Suspense } from 'react';
 
-export default function SignInPage() {
-  const params  = useSearchParams();
+function SignInContent() {
+  const params      = useSearchParams();
   const callbackUrl = params.get('callbackUrl') || '/';
 
   return (
     <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
-      {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-600/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-brand-800/10 rounded-full blur-3xl" />
       </div>
-
       <div className="relative card w-full max-w-sm p-8 text-center animate-scale-in">
-        {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center">
             <Zap className="w-5 h-5 text-white" />
@@ -26,12 +24,10 @@ export default function SignInPage() {
             TECNO<span className="text-brand-500">ISO</span>
           </span>
         </div>
-
         <h1 className="font-display font-800 text-2xl text-white mb-2">Entrar na sua conta</h1>
         <p className="text-dark-400 text-sm mb-8">
           Acesse para visualizar pedidos e realizar compras com mais facilidade.
         </p>
-
         <button
           onClick={() => signIn('google', { callbackUrl })}
           className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white hover:bg-gray-50 text-gray-800 font-display font-600 rounded-lg transition-all duration-200 hover:shadow-lg active:scale-95"
@@ -44,7 +40,6 @@ export default function SignInPage() {
           </svg>
           Continuar com Google
         </button>
-
         <p className="text-xs text-dark-600 mt-6">
           Ao entrar, você concorda com nossos{' '}
           <a href="#" className="text-brand-500 hover:underline">Termos de Uso</a>
@@ -54,4 +49,8 @@ export default function SignInPage() {
       </div>
     </div>
   );
+}
+
+export default function SignInPage() {
+  return <Suspense><SignInContent /></Suspense>;
 }

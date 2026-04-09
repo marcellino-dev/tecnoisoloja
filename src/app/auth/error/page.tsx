@@ -3,16 +3,17 @@
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const params = useSearchParams();
   const error  = params.get('error');
 
   const messages: Record<string, string> = {
-    OAuthSignin:    'Erro ao iniciar login com Google.',
-    OAuthCallback:  'Erro no callback do Google.',
+    OAuthSignin:        'Erro ao iniciar login com Google.',
+    OAuthCallback:      'Erro no callback do Google.',
     OAuthCreateAccount: 'Não foi possível criar conta.',
-    default:        'Ocorreu um erro ao fazer login. Tente novamente.',
+    default:            'Ocorreu um erro ao fazer login. Tente novamente.',
   };
 
   return (
@@ -34,4 +35,8 @@ export default function AuthErrorPage() {
       </div>
     </div>
   );
+}
+
+export default function AuthErrorPage() {
+  return <Suspense><AuthErrorContent /></Suspense>;
 }
