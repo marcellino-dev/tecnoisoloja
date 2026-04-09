@@ -35,7 +35,7 @@ export default async function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map(order => {
+          {orders.map((order: any) => {
               const status = ORDER_STATUS_LABELS[order.status] || { label: order.status, color: 'text-dark-400 bg-dark-700' };
               return (
                 <div key={order.id} className="card p-5">
