@@ -40,7 +40,6 @@ export default function CheckoutPage() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm(f => ({ ...f, [field]: e.target.value }));
 
-  // Preenche endereco automaticamente via ViaCEP
   const fetchAddress = async (cep: string) => {
     const clean = cep.replace(/\D/g, '');
     if (clean.length !== 8) return;
@@ -76,10 +75,8 @@ export default function CheckoutPage() {
 
       if (!res.ok) throw new Error(json.error || 'Erro ao processar pedido');
 
-      // Redireciona para o checkout do Mercado Pago
-      const url = process.env.NODE_ENV === 'production'
-        ? json.data.init_point
-        : json.data.sandbox_init_point;
+      // Produção: sempre usa init_point real
+      const url = json.data.init_point;
 
       clearCart();
       window.location.href = url;
@@ -109,7 +106,6 @@ export default function CheckoutPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* Formulario de endereco */}
         <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
 
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -187,7 +183,6 @@ export default function CheckoutPage() {
           </button>
         </form>
 
-        {/* Resumo do pedido */}
         <div className="space-y-4">
           <div className="bg-white rounded-2xl border border-gray-200 p-6 sticky top-24">
             <h2 className="font-700 text-gray-900 mb-4">Resumo do pedido</h2>
