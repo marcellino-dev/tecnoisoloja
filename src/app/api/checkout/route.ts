@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
           failure: `${appUrl}/checkout/failure?order=${order.id}`,
           pending: `${appUrl}/checkout/pending?order=${order.id}`,
         },
-        auto_return: 'approved',
+      
         notification_url: `${appUrl}/api/webhooks/mercadopago`,
         statement_descriptor: 'TECNOISO',
       },
