@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, Eye } from 'lucide-react';
 import { Product } from '@/types';
 import { useCartStore } from '@/lib/store/cart';
 import { formatPrice } from '@/lib/utils';
@@ -13,96 +12,218 @@ interface Props {
   index?: number;
 }
 
+function StarRating({ rating = 4.2, count = 0 }: { rating?: number; count?: number }) {
+  const full  = Math.floor(rating);
+  const half  = rating % 1 >= 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      <span style={{ color: '#f90', fontSize: 13, letterSpacing: -1 }}>
+        {'★'.repeat(full)}
+        {half ? '½' : ''}
+        {'☆'.repeat(empty)}
+      </span>
+      {count > 0 && (
+        <span style={{ fontSize: 12, color: '#007185' }}>({count})</span>
+      )}
+    </div>
+  );
+}
+
 export function ProductCard({ product, index = 0 }: Props) {
   const addItem = useCartStore(s => s.addItem);
+
   const discount = product.compare_price
     ? Math.round((1 - product.price / product.compare_price) * 100)
     : null;
 
+  const outOfStock = product.stock === 0;
+  const lowStock   = product.stock > 0 && product.stock <= 10;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (product.stock === 0) return;
+    if (outOfStock) return;
     addItem(product);
-    toast.success(`${product.name} adicionado ao carrinho!`);
+    toast.success(`${product.name} adicionado!`);
   };
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (outOfStock) return;
+    addItem(product);
+    window.location.href = '/checkout';
+  };
+
+  // Formata preço no estilo Amazon: "R$ 399,90" → parte inteira + centavos separados
+  const formatAmazonPrice = (value: number) => {
+    const [int, dec] = value.toFixed(2).replace('.', ',').split(',');
+    return { int, dec };
+  };
+
+  const { int, dec } = formatAmazonPrice(product.price);
 
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="card-hover group flex flex-col animate-fade-in"
-      style={{ animationDelay: `${index * 0.06}s` }}
+      className="group block"
+      style={{
+        background: 'white',
+        border: '0.5px solid #ddd',
+        borderRadius: 4,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'border-color 0.15s',
+        animationDelay: `${index * 0.06}s`,
+      }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = '#f90')}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = '#ddd')}
     >
-      {/* Image */}
-      <div className="relative aspect-[4/3] bg-dark-700 overflow-hidden">
-        <Image
-          src={product.images?.[0] || `https://via.placeholder.com/400x300/1a1a2e/ea580c?text=${encodeURIComponent(product.name)}`}
-          alt={product.name}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
-
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {discount && (
-            <span className="badge bg-brand-600 text-white">-{discount}%</span>
-          )}
-          {product.featured && (
-            <span className="badge bg-dark-700/90 text-brand-400 border border-brand-600/30">Destaque</span>
-          )}
-          {product.stock === 0 && (
-            <span className="badge bg-red-900/80 text-red-400">Sem estoque</span>
-          )}
-        </div>
-
-        {/* Hover actions */}
-        <div className="absolute inset-0 bg-dark-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <span className="flex items-center gap-2 text-sm font-display font-600 text-white">
-            <Eye className="w-4 h-4" /> Ver detalhes
+      {/* Imagem */}
+      <div style={{
+        position: 'relative',
+        aspectRatio: '1/1',
+        background: '#f7f8f8',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 12,
+        opacity: outOfStock ? 0.5 : 1,
+      }}>
+        {discount && (
+          <span style={{
+            position: 'absolute', top: 8, left: 8, zIndex: 10,
+            background: '#CC0C39', color: '#fff',
+            fontSize: 11, fontWeight: 500,
+            padding: '2px 6px', borderRadius: 2,
+          }}>
+            -{discount}%
           </span>
-        </div>
+        )}
+        {product.featured && !discount && (
+          <span style={{
+            position: 'absolute', top: 8, right: 8, zIndex: 10,
+            background: '#fff', border: '0.5px solid #ddd',
+            color: '#555', fontSize: 11,
+            padding: '2px 6px', borderRadius: 2,
+          }}>
+            Destaque
+          </span>
+        )}
+        {product.images?.[0] ? (
+          <Image
+            src={product.images[0]}
+            alt={product.name}
+            fill
+            className="object-contain p-3"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
+        ) : (
+          <div style={{ color: '#ccc', fontSize: 12 }}>Sem imagem</div>
+        )}
       </div>
 
-      {/* Info */}
-      <div className="flex flex-col flex-1 p-4">
+      {/* Conteúdo */}
+      <div style={{
+        padding: '10px 12px',
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 5,
+      }}>
+        {/* Categoria */}
         {product.category && (
-          <span className="text-xs font-mono text-dark-500 mb-1 tracking-wide uppercase">
+          <span style={{ fontSize: 11, color: '#007185' }}>
             {product.category.name}
           </span>
         )}
-        <h3 className="font-display font-600 text-white text-sm leading-snug line-clamp-2 mb-3 group-hover:text-brand-300 transition-colors flex-1">
+
+        {/* Nome */}
+        <p style={{
+          fontSize: 13, color: '#0F1111',
+          lineHeight: 1.4, margin: 0, flex: 1,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}>
           {product.name}
-        </h3>
+        </p>
 
-        {/* Price + CTA */}
-        <div className="flex items-center justify-between gap-2 mt-auto">
-          <div>
-            <div className="font-display font-800 text-lg text-white">
-              {formatPrice(product.price)}
+        {/* Estrelas */}
+      <StarRating rating={4.5} count={0} />
+
+        {/* Preço */}
+        <div>
+          {product.compare_price && (
+            <div style={{ fontSize: 11, color: '#555' }}>
+              R$ <s>{product.compare_price.toFixed(2).replace('.', ',')}</s>
             </div>
-            {product.compare_price && (
-              <div className="text-xs text-dark-500 line-through">
-                {formatPrice(product.compare_price)}
-              </div>
-            )}
+          )}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+            <span style={{ fontSize: 11, color: '#0F1111' }}>R$ </span>
+            <span style={{ fontSize: 22, fontWeight: 500, color: '#0F1111', lineHeight: 1.1 }}>{int}</span>
+            <span style={{ fontSize: 13, color: '#0F1111' }}>,{dec}</span>
           </div>
-
-          <button
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            className="flex items-center gap-1.5 px-3 py-2 bg-brand-600 hover:bg-brand-500 disabled:bg-dark-600 disabled:cursor-not-allowed text-white rounded-lg text-sm font-display font-600 transition-all duration-200 hover:shadow-lg hover:shadow-brand-600/30 active:scale-95"
-            title="Adicionar ao carrinho"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            <span className="hidden sm:block">Adicionar</span>
-          </button>
+          <p style={{ fontSize: 11, color: '#555', margin: 0 }}>em 12x sem juros</p>
         </div>
 
-        {/* Stock indicator */}
-        {product.stock > 0 && product.stock <= 10 && (
-          <p className="text-xs text-yellow-500 mt-2">
-            ⚠ Apenas {product.stock} em estoque
+        {/* Status estoque */}
+        {outOfStock ? (
+          <p style={{ fontSize: 12, color: '#CC0C39', margin: 0 }}>Indisponível</p>
+        ) : lowStock ? (
+          <p style={{ fontSize: 12, color: '#CC0C39', margin: 0 }}>
+            Restam apenas {product.stock}
           </p>
+        ) : (
+          <p style={{ fontSize: 12, color: '#007600', margin: 0 }}>Em estoque</p>
+        )}
+
+        <p style={{ fontSize: 11, color: '#555', margin: 0 }}>
+          Frete GRÁTIS acima de R$500
+        </p>
+
+        {/* Botões */}
+        <button
+          onClick={handleAddToCart}
+          disabled={outOfStock}
+          style={{
+            marginTop: 4,
+            width: '100%',
+            padding: '7px 0',
+            background: outOfStock ? '#e9e9e9' : '#FFD814',
+            border: `0.5px solid ${outOfStock ? '#ccc' : '#FCD200'}`,
+            borderRadius: 20,
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: outOfStock ? 'not-allowed' : 'pointer',
+            color: outOfStock ? '#888' : '#0F1111',
+          }}
+          onMouseEnter={e => { if (!outOfStock) (e.currentTarget.style.background = '#F7CA00'); }}
+          onMouseLeave={e => { if (!outOfStock) (e.currentTarget.style.background = '#FFD814'); }}
+        >
+          {outOfStock ? 'Esgotado' : 'Adicionar ao carrinho'}
+        </button>
+
+        {!outOfStock && (
+          <button
+            onClick={handleBuyNow}
+            style={{
+              width: '100%',
+              padding: '7px 0',
+              background: '#FFA41C',
+              border: '0.5px solid #FF8F00',
+              borderRadius: 20,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+              color: '#0F1111',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#FA8900')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#FFA41C')}
+          >
+            Comprar agora
+          </button>
         )}
       </div>
     </Link>

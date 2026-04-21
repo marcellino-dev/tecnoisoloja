@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Syne, DM_Sans, DM_Mono } from 'next/font/google';
-import './globals.css';
+import './globals.css'
 import { Providers } from '@/components/layout/Providers';
 import { Toaster } from 'react-hot-toast';
 
@@ -41,20 +41,35 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}>
-      <body className="bg-dark-900 text-dark-100 font-body antialiased">
+    <html
+      lang="pt-BR"
+      className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}
+    >
+      {/*
+        Sem bg-* aqui — o body já recebe background via globals.css (:root + body).
+        Isso evita conflito de especificidade entre Tailwind e CSS custom properties.
+      */}
+      <body className="antialiased">
         <Providers>
           {children}
           <Toaster
             position="bottom-right"
             toastOptions={{
               style: {
-                background: '#16191c',
-                color: '#f8f9fa',
-                border: '1px solid #343a40',
+                background: '#ffffff',
+                color: '#1c1917',
+                border: '1px solid #e2e1dc',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                 fontFamily: 'var(--font-body)',
+                fontSize: '14px',
               },
-              success: { iconTheme: { primary: '#ea580c', secondary: '#0d0f10' } },
+              success: {
+                iconTheme: { primary: '#ea580c', secondary: '#fff7ed' },
+              },
+              error: {
+                iconTheme: { primary: '#dc2626', secondary: '#fef2f2' },
+              },
             }}
           />
         </Providers>
