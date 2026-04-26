@@ -14,7 +14,7 @@ interface Props {
 export function ProductCarousel({ products }: Props) {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: 'start' },
-    [Autoplay({ delay: 3500, stopOnInteraction: false })]
+    [Autoplay({ delay: 3800, stopOnInteraction: false })]
   );
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
@@ -22,28 +22,68 @@ export function ProductCarousel({ products }: Props) {
 
   if (!products.length) return null;
 
+  const btnBase: React.CSSProperties = {
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    zIndex: 10,
+    width: 40, height: 40,
+    borderRadius: '50%',
+    background: '#fff',
+    border: '1.5px solid #e5e7eb',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', color: '#374151',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    transition: 'all 0.2s ease',
+  };
+
   return (
-    <div className="relative px-6">
+    <div style={{ position: 'relative', paddingLeft: 24, paddingRight: 24 }}>
       <button
         onClick={scrollPrev}
-        className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-dark-800 border border-dark-600 flex items-center justify-center text-white hover:bg-brand-600 hover:border-brand-600 transition-all duration-200 shadow-lg"
+        style={{ ...btnBase, left: -4 }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.background = '#E63946';
+          (e.currentTarget as HTMLButtonElement).style.borderColor = '#E63946';
+          (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(230,57,70,0.3)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.background = '#fff';
+          (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb';
+          (e.currentTarget as HTMLButtonElement).style.color = '#374151';
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        }}
       >
-        <ChevronLeft className="w-5 h-5" />
+        <ChevronLeft style={{ width: 18, height: 18 }} />
       </button>
 
       <button
         onClick={scrollNext}
-        className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-dark-800 border border-dark-600 flex items-center justify-center text-white hover:bg-brand-600 hover:border-brand-600 transition-all duration-200 shadow-lg"
+        style={{ ...btnBase, right: -4 }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.background = '#E63946';
+          (e.currentTarget as HTMLButtonElement).style.borderColor = '#E63946';
+          (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(230,57,70,0.3)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.background = '#fff';
+          (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb';
+          (e.currentTarget as HTMLButtonElement).style.color = '#374151';
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        }}
       >
-        <ChevronRight className="w-5 h-5" />
+        <ChevronRight style={{ width: 18, height: 18 }} />
       </button>
 
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex gap-5">
+      <div style={{ overflow: 'hidden' }} ref={emblaRef}>
+        <div style={{ display: 'flex', gap: 16 }}>
           {products.map((product, i) => (
             <div
               key={product.id}
-              className="flex-none w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
+              style={{ flex: 'none', width: 'calc(50% - 8px)' }}
+              className="sm:w-[calc(33.333%-11px)] lg:w-[calc(25%-12px)]"
             >
               <ProductCard product={product} index={i} />
             </div>

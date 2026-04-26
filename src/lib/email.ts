@@ -86,7 +86,7 @@ function buildOrderEmailHtml(params: OrderEmailParams): string {
 
 export async function sendOrderConfirmationEmail(params: OrderEmailParams) {
   const { error } = await resend.emails.send({
-    from:    'Tecnoiso <pedidos@tecnoiso.com.br>',
+    from:    'Tecnoiso <pedidos@tecnoiso.com>',
     to:      params.to,
     subject: `Pedido confirmado #${params.orderId.slice(0, 8).toUpperCase()}`,
     html:    buildOrderEmailHtml(params),

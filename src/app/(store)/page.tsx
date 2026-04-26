@@ -259,27 +259,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* CTA FINAL */}
-      <section className="py-10 mt-3">
-        <div className="container-custom">
-          <div className="relative bg-gradient-to-r from-brand-600 to-brand-700 rounded-2xl overflow-hidden p-10 md:p-16 text-center">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-white/10 blur-3xl rounded-full" />
-            <div className="relative z-10">
-              <p className="text-xs font-mono text-white/70 tracking-widest uppercase mb-3">Pronto para começar?</p>
-              <h2 className="font-display font-800 text-3xl md:text-4xl text-white mb-4">
-                Encontre o instrumento ideal para sua operação
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Explore nosso catálogo completo ou entre em contato com nossos especialistas.
-              </p>
-              <Link href="/products" className="inline-flex items-center gap-2 px-10 py-4 bg-white text-brand-600 font-display font-700 rounded-lg hover:bg-gray-50 transition-all text-base">
-                Explorar Catálogo →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
     </div>
   );
 }

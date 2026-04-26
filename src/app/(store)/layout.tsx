@@ -8,7 +8,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       <main className="min-h-screen">
         {children}
       </main>
-      <Footer />
+     
     </>
   );
 }

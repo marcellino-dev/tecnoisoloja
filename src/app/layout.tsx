@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { Syne, DM_Sans, DM_Mono } from 'next/font/google';
-import './globals.css'
+import './globals.css';
 import { Providers } from '@/components/layout/Providers';
-import { Toaster } from 'react-hot-toast';
+import { Header }   from '@/components/layout/Header';
+import { Footer }   from '@/components/layout/Footer';
+import { Toaster }  from 'react-hot-toast';
 
 const syne = Syne({
   subsets: ['latin'],
@@ -45,13 +47,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="pt-BR"
       className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}
     >
-      {/*
-        Sem bg-* aqui — o body já recebe background via globals.css (:root + body).
-        Isso evita conflito de especificidade entre Tailwind e CSS custom properties.
-      */}
       <body className="antialiased">
         <Providers>
-          {children}
+
+          {/* Header fixo — flutua sobre a página */}
+          <Header />
+
+          {/* Espaçador: main(64) + categories(40) = 104px */}
+          <div style={{ height: 104 }} aria-hidden="true" />
+
+          {/* Conteúdo de cada página */}
+          <main style={{ minHeight: 'calc(100vh - 104px)' }}>
+            {children}
+          </main>
+
+          {/* Rodapé */}
+          <Footer />
+
+          {/* Toast notifications */}
           <Toaster
             position="bottom-right"
             toastOptions={{
@@ -65,13 +78,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 fontSize: '14px',
               },
               success: {
-                iconTheme: { primary: '#ea580c', secondary: '#fff7ed' },
+                iconTheme: { primary: '#E63946', secondary: '#fff5f5' },
               },
               error: {
                 iconTheme: { primary: '#dc2626', secondary: '#fef2f2' },
               },
             }}
           />
+
         </Providers>
       </body>
     </html>
