@@ -15,7 +15,6 @@
     --text-secondary: #4a4744;
     --text-muted:     #9ca3a8;
 
-    /* Paleta: Vermelho / Branco / Preto */
     --accent:         #E63946;
     --accent-light:   #fff5f5;
     --accent-strong:  #c62d39;
@@ -135,7 +134,6 @@
     box-shadow: 0 0 40px -10px rgba(230, 57, 70, 0.25);
   }
 
-  /* mantém compat com código antigo que usa glow-orange */
   .glow-orange {
     box-shadow: 0 0 40px -10px rgba(230, 57, 70, 0.25);
   }
@@ -143,6 +141,84 @@
   .surface-muted {
     background-color: var(--surface-muted);
   }
+
+  /* ── HeroCarousel ──────────────────────────────────────────────────────── */
+
+  .hero-img-enter { animation: var(--hero-ia) 0.8s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .hero-img-idle  { animation: breathe 4s ease-in-out infinite; }
+
+  .hero-ey-enter { animation: txtIn 0.45s cubic-bezier(0.22,1,0.36,1) 0.18s both; }
+  .hero-ti-enter { animation: txtIn 0.50s cubic-bezier(0.22,1,0.36,1) 0.26s both; }
+  .hero-su-enter { animation: txtIn 0.45s cubic-bezier(0.22,1,0.36,1) 0.34s both; }
+  .hero-ct-enter { animation: txtIn 0.45s cubic-bezier(0.22,1,0.36,1) 0.42s both; }
+
+  .hero-cta-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 20px;
+    border-radius: 980px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  }
+  .hero-cta-pill:hover { opacity: 0.82; }
+
+  .hero-cta-link {
+    font-size: 14px;
+    font-weight: 400;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: opacity 0.2s;
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  }
+  .hero-cta-link:hover { opacity: 0.6; }
+  .hero-cta-link:hover .hero-arrow { transform: translateX(3px); }
+  .hero-arrow { transition: transform 0.2s; display: inline-block; }
+
+  .hero-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 40;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.4;
+    background: rgba(0,0,0,0.07);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .hero-nav-btn:hover { opacity: 0.9; transform: translateY(-50%) scale(1.1); }
+
+  .hero-pause-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 40;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.35;
+    background: rgba(0,0,0,0.07);
+    transition: opacity 0.2s;
+  }
+  .hero-pause-btn:hover { opacity: 0.8; }
 }
 
 @layer utilities {
@@ -152,7 +228,6 @@
   .font-700 { font-weight: 700; }
   .font-800 { font-weight: 800; }
 
-  /* Gradiente agora é vermelho */
   .text-gradient {
     background: linear-gradient(135deg, #E63946, #c62d39);
     -webkit-background-clip: text;
@@ -165,7 +240,63 @@
   .text-muted-var     { color: var(--text-muted); }
 }
 
+/* ── Keyframes globais ─────────────────────────────────────────────────────── */
+
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
+}
+
+/* Header */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* HeroCarousel — imagens */
+@keyframes swoopIn {
+  from { opacity: 0; transform: translateX(100px) rotate(8deg) scale(0.85); }
+  to   { opacity: 1; transform: translateX(0) rotate(0) scale(1); }
+}
+
+@keyframes popUp {
+  from { opacity: 0; transform: scale(0.6) translateY(50px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-70px) rotate(-8deg); }
+  to   { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+@keyframes slideFromRight {
+  from { opacity: 0; transform: translateX(110px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.7) translateY(40px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* HeroCarousel — texto */
+@keyframes txtIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* HeroCarousel — idle */
+@keyframes breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%       { transform: scale(1.02) translateY(-5px); }
 }

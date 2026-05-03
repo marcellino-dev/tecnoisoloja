@@ -8,9 +8,9 @@ export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
 
-  const supabase  = createAdminClient();
-  const isAdmin   = (session.user as any).role === 'admin';
-  const userId    = (session.user as any).id;
+  const supabase = createAdminClient();
+  const isAdmin  = (session.user as any).role === 'admin';
+  const userId   = (session.user as any).id;
 
   let query = supabase
     .from('orders')
@@ -28,11 +28,12 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
 
-  const { items, shipping_address }: { items: CartItem[]; shipping_address: ShippingAddress } = await req.json();
+  const { items, shipping_address }: { items: CartItem[]; shipping_address: ShippingAddress } =
+    await req.json();
   if (!items?.length) return NextResponse.json({ error: 'Carrinho vazio' }, { status: 400 });
 
-  const total   = items.reduce((acc, i) => acc + i.product.price * i.quantity, 0);
-  const userId  = (session.user as any).id;
+  const total    = items.reduce((acc, i) => acc + i.product.price * i.quantity, 0);
+  const userId   = (session.user as any).id;
   const supabase = createAdminClient();
 
   // Cria o pedido
@@ -69,26 +70,27 @@ export async function POST(req: NextRequest) {
 
 async function createPagSeguroCheckout(order: any, items: CartItem[], address: ShippingAddress) {
   const baseUrl = process.env.PAGSEGURO_URL || 'https://sandbox.pagseguro.uol.com.br';
-  const params  = new URLSearchParams({
-    email: process.env.PAGSEGURO_EMAIL!,
-    token: process.env.PAGSEGURO_TOKEN!,
-    currency: 'BRL',
-    reference: order.id,
-    redirectURL:    `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?order=${order.id}`,
+
+  const params = new URLSearchParams({
+    email:           process.env.PAGSEGURO_EMAIL        ?? '',
+    token:           process.env.PAGSEGURO_TOKEN        ?? '',
+    currency:        'BRL',
+    reference:       String(order.id),
+    redirectURL:     `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?order=${order.id}`,
     notificationURL: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/pagseguro`,
-    'senderName':   address.name,
-    'senderEmail':  address.email,
-    'senderPhone':  address.phone?.replace(/\D/g, '') || '',
-    'shippingAddressStreet':     address.street,
-    'shippingAddressNumber':     address.number,
-    'shippingAddressComplement': address.complement || '',
-    'shippingAddressDistrict':   address.district,
-    'shippingAddressCity':       address.city,
-    'shippingAddressState':      address.state,
-    'shippingAddressPostalCode': address.postal_code?.replace(/\D/g, '') || '',
-    'shippingAddressCountry':    'BRA',
-    'shippingType':              '3',
-    'shippingCost':              '0.00',
+    senderName:      address.name                       ?? '',
+    senderEmail:     address.email                      ?? '',
+    senderPhone:     address.phone?.replace(/\D/g, '')  ?? '',
+    shippingAddressStreet:     address.street           ?? '',
+    shippingAddressNumber:     address.number           ?? '',
+    shippingAddressComplement: address.complement       ?? '',
+    shippingAddressDistrict:   address.district         ?? '',
+    shippingAddressCity:       address.city             ?? '',
+    shippingAddressState:      address.state            ?? '',
+    shippingAddressPostalCode: address.postal_code?.replace(/\D/g, '') ?? '',
+    shippingAddressCountry:    'BRA',
+    shippingType:              '3',
+    shippingCost:              '0.00',
   });
 
   items.forEach((item, i) => {
