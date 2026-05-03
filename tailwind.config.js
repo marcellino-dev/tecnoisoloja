@@ -9,16 +9,16 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          50:  '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
+          50:  '#fff5f5',  // fundo levíssimo vermelho
+          100: '#ffe0e2',
+          200: '#ffc2c6',
+          300: '#ff9aa0',
+          400: '#f4606b',
+          500: '#E63946',  // ← cor principal
+          600: '#c62d39',  // ← hover
+          700: '#a3212c',
+          800: '#821a23',
+          900: '#66141b',
         },
         // Mantém dark para compatibilidade com header/hero
         dark: {
