@@ -82,10 +82,12 @@ export interface ShippingAddress {
   street: string;
   number: string;
   complement?: string;
-  district: string;
+  neighborhood?: string; // alias de district (usado no checkout novo)
+  district?: string;     // campo original (mantido para compatibilidade)
   city: string;
   state: string;
-  postal_code: string;
+  postal_code?: string;  // campo original (mantido para compatibilidade)
+  zip?: string;          // alias de postal_code (usado no checkout novo)
 }
 
 export interface DashboardMetrics {

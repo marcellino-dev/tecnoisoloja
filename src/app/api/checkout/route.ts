@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
           address: {
             street_name:   shipping_address.street,
             street_number: String(parseInt(shipping_address.number) || 0),
-            zip_code:      shipping_address.postal_code?.replace(/\D/g, '') || '',
+            zip_code:      (shipping_address.zip || shipping_address.postal_code || '').replace(/\D/g, ''),
           },
         },
         payment_methods: {
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
           failure: `${appUrl}/checkout/failure?order=${order.id}`,
           pending: `${appUrl}/checkout/pending?order=${order.id}`,
         },
-      
+        auto_return: 'approved', // redireciona automaticamente após pagamento aprovado
         notification_url: `${appUrl}/api/webhooks/mercadopago`,
         statement_descriptor: 'TECNOISO',
       },
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
       data: {
         order_id:      order.id,
         preference_id: preference.id,
-        init_point:    preference.init_point,
+        init_point:    preference.init_point, // sempre init_point, em prod e dev
       },
     }, { status: 201 });
 
@@ -112,4 +112,4 @@ export async function POST(req: NextRequest) {
       error: 'Erro ao iniciar pagamento. Tente novamente.',
     }, { status: 500 });
   }
-} 
+}
