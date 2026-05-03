@@ -1,7 +1,11 @@
+// src/app/api/admin/metrics/route.ts
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/server';
+
+// Statuses com pagamento confirmado pelo MP — contam no faturamento
+const CONFIRMED_PAYMENT_STATUSES = new Set(['paid', 'processing', 'shipped', 'delivered']);
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -18,9 +22,23 @@ export async function GET() {
   ]);
 
   const allOrders = orders.data || [];
-const paidOrders   = allOrders.filter((o: any) => o.status === 'paid');
-const pendingOrders = allOrders.filter((o: any) => o.status === 'pending');
-const totalRevenue = paidOrders.reduce((acc: number, o: any) => acc + Number(o.total), 0);
+
+  // Faturamento real = qualquer pedido com pagamento confirmado pelo MP
+  // (paid → aprovado | processing → em preparo | shipped → enviado | delivered → entregue)
+  // Exclui: pending (não pago), cancelled e refunded (dinheiro devolvido)
+  const totalRevenue = allOrders
+    .filter((o: any) => CONFIRMED_PAYMENT_STATUSES.has(o.status))
+    .reduce((acc: number, o: any) => acc + Number(o.total), 0);
+
+  // Faturamento apenas de pedidos já entregues ao cliente
+  const deliveredRevenue = allOrders
+    .filter((o: any) => o.status === 'delivered')
+    .reduce((acc: number, o: any) => acc + Number(o.total), 0);
+
+  const pendingOrders   = allOrders.filter((o: any) => o.status === 'pending').length;
+  const cancelledOrders = allOrders.filter((o: any) => o.status === 'cancelled').length;
+  const deliveredOrders = allOrders.filter((o: any) => o.status === 'delivered').length;
+
   const recentOrders = await supabase
     .from('orders')
     .select('*, user:users(name,email)')
@@ -29,12 +47,18 @@ const totalRevenue = paidOrders.reduce((acc: number, o: any) => acc + Number(o.t
 
   return NextResponse.json({
     data: {
-      total_revenue:   totalRevenue,
-      total_orders:    orders.count || 0,
-      pending_orders:  pendingOrders.length,
-      total_users:     users.count  || 0,
-      total_products:  products.count || 0,
-      recent_orders:   recentOrders.data || [],
+      // Faturamento confirmado (paid + processing + shipped + delivered)
+      total_revenue:     totalRevenue,
+      // Faturamento de pedidos já entregues ao cliente
+      delivered_revenue: deliveredRevenue,
+      // Contadores gerais
+      total_orders:      orders.count || 0,
+      pending_orders:    pendingOrders,
+      cancelled_orders:  cancelledOrders,
+      delivered_orders:  deliveredOrders,
+      total_users:       users.count  || 0,
+      total_products:    products.count || 0,
+      recent_orders:     recentOrders.data || [],
     },
   });
 }

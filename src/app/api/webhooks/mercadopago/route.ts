@@ -1,9 +1,11 @@
+// src/app/api/webhooks/mercadopago/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { mpPayment } from '@/lib/mercadopago';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 
-// Mapeamento de status do Mercado Pago para status interno
+// Mapeamento de status do Mercado Pago → status interno
+// delivered NÃO vem do MP — é setado pelo admin/logística separadamente
 const STATUS_MAP: Record<string, string> = {
   approved:     'paid',
   pending:      'pending',
@@ -15,54 +17,65 @@ const STATUS_MAP: Record<string, string> = {
   charged_back: 'refunded',
 };
 
+// Hierarquia de status: nunca regride para um status inferior
+// delivered é o topo — só o admin pode setar
+const STATUS_RANK: Record<string, number> = {
+  pending:    0,
+  cancelled:  1,
+  refunded:   1,
+  paid:       2,
+  processing: 3,
+  shipped:    4,
+  delivered:  5, // topo — webhook nunca sobrescreve
+};
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
 
-  // O MP envia dois formatos: notificacoes IPN e webhooks. Tratamos os dois.
   const paymentId = body?.data?.id || body?.id;
   const topic     = body?.type   || body?.topic;
 
+  // Ignora notificações que não são de pagamento
   if (!paymentId || topic !== 'payment') {
     return NextResponse.json({ ok: true });
   }
 
   try {
-    // Busca os detalhes do pagamento na API do MP
     const payment = await mpPayment.get({ id: String(paymentId) });
 
     const mpStatus      = payment.status as string;
     const orderId       = payment.external_reference as string;
-    const paymentMethod = payment.payment_type_id   as string;
+    const paymentMethod = payment.payment_type_id as string;
     const newStatus     = STATUS_MAP[mpStatus] || 'pending';
 
     if (!orderId) {
-      console.warn('[webhook] external_reference ausente no pagamento', paymentId);
+      console.warn('[webhook/mp] external_reference ausente:', paymentId);
       return NextResponse.json({ ok: true });
     }
 
     const supabase = createAdminClient();
 
-    // Busca o pedido atual para nao regredir status ja confirmado
     const { data: order } = await supabase
       .from('orders')
-      .select('*, order_items(*, product:products(name, price))')
+      .select('id, status, user_id, total, order_items(product_id, product_name, product_price, quantity)')
       .eq('id', orderId)
       .single();
 
     if (!order) {
-      console.warn('[webhook] Pedido nao encontrado:', orderId);
+      console.warn('[webhook/mp] Pedido não encontrado:', orderId);
       return NextResponse.json({ ok: true });
     }
 
-    // Nao regride status: se ja esta paid, nao volta para pending
-    const STATUS_RANK: Record<string, number> = {
-      pending: 0, cancelled: 1, refunded: 1, paid: 2, shipped: 3, delivered: 4,
-    };
-    if ((STATUS_RANK[newStatus] || 0) <= (STATUS_RANK[order.status] || 0) && order.status !== 'pending') {
+    // Nunca regride status — especialmente nunca sobrescreve `delivered`
+    const currentRank = STATUS_RANK[order.status] ?? 0;
+    const newRank     = STATUS_RANK[newStatus]    ?? 0;
+
+    if (newRank <= currentRank && order.status !== 'pending') {
+      console.info(`[webhook/mp] Status não regredido: ${order.status} → ${newStatus}`);
       return NextResponse.json({ ok: true });
     }
 
-    // Atualiza o pedido com status e dados do pagamento
+    // Atualiza o pedido
     await supabase
       .from('orders')
       .update({
@@ -70,12 +83,13 @@ export async function POST(req: NextRequest) {
         mp_payment_id:     String(paymentId),
         mp_payment_method: paymentMethod,
         mp_payment_status: mpStatus,
+        updated_at:        new Date().toISOString(),
       })
       .eq('id', orderId);
 
-    // Se pagamento aprovado: baixa estoque e envia email
-    if (newStatus === 'paid') {
-      // Baixa estoque de cada item
+    // Ações pós-pagamento aprovado
+    if (newStatus === 'paid' && order.status === 'pending') {
+      // Baixa estoque
       for (const item of order.order_items || []) {
         await supabase.rpc('decrement_stock', {
           p_product_id: item.product_id,
@@ -83,7 +97,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Busca email do usuario
+      // Envia email de confirmação
       const { data: user } = await supabase
         .from('users')
         .select('email, name')
@@ -92,10 +106,10 @@ export async function POST(req: NextRequest) {
 
       if (user?.email) {
         await sendOrderConfirmationEmail({
-          to:            user.email,
-          customerName:  user.name,
-          orderId:       order.id,
-          total:         order.total,
+          to:           user.email,
+          customerName: user.name,
+          orderId:      order.id,
+          total:        order.total,
           paymentMethod,
           items: (order.order_items || []).map((i: any) => ({
             name:     i.product_name,
@@ -107,9 +121,9 @@ export async function POST(req: NextRequest) {
     }
 
   } catch (err) {
-    console.error('[webhook] Erro ao processar pagamento MP:', err);
+    console.error('[webhook/mp] Erro:', err);
   }
 
-  // Sempre retorna 200 para o MP nao retentar
+  // Sempre 200 — o MP não retenta se receber 200
   return NextResponse.json({ ok: true });
 }
