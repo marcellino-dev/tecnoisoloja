@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY ?? '');
+}
 
 interface OrderEmailParams {
   to: string;
@@ -85,7 +87,7 @@ function buildOrderEmailHtml(params: OrderEmailParams): string {
 }
 
 export async function sendOrderConfirmationEmail(params: OrderEmailParams) {
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from:    'Tecnoiso <pedidos@tecnoiso.com>',
     to:      params.to,
     subject: `Pedido confirmado #${params.orderId.slice(0, 8).toUpperCase()}`,
