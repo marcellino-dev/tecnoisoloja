@@ -3,11 +3,19 @@ import { ProductCard } from '@/components/shop/ProductCard';
 import { Product } from '@/types';
 import { Search, SlidersHorizontal, ChevronRight, Package } from 'lucide-react';
 
-interface Props {
-  searchParams: { category?: string; search?: string; featured?: string; offer?: string; page?: string };
+interface SearchParamsType {
+  category?: string;
+  search?: string;
+  featured?: string;
+  offer?: string;
+  page?: string;
 }
 
-async function getProducts(params: Props['searchParams']): Promise<{ data: Product[]; count: number }> {
+interface Props {
+  searchParams: Promise<SearchParamsType>;
+}
+
+async function getProducts(params: SearchParamsType): Promise<{ data: Product[]; count: number }> {
   const supabase = createAdminClient();
   const page   = parseInt(params.page || '1');
   const limit  = 12;
@@ -52,17 +60,19 @@ async function getCategories() {
 export const metadata = { title: 'Produtos | Tecnoiso' };
 
 export default async function ProductsPage({ searchParams }: Props) {
+  const sp = await searchParams;
+
   const [{ data: products, count }, categories] = await Promise.all([
-    getProducts(searchParams),
+    getProducts(sp),
     getCategories(),
   ]);
 
-  const activeCategory = categories.find((c: any) => c.slug === searchParams.category);
-  const currentPage    = parseInt(searchParams.page || '1');
+  const activeCategory = categories.find((c: any) => c.slug === sp.category);
+  const currentPage    = parseInt(sp.page || '1');
   const totalPages     = Math.ceil(count / 12);
 
-  const pageTitle = searchParams.search
-    ? `Resultados para "${searchParams.search}"`
+  const pageTitle = sp.search
+    ? `Resultados para "${sp.search}"`
     : activeCategory?.name ?? 'Todos os Produtos';
 
   return (
@@ -89,8 +99,8 @@ export default async function ProductsPage({ searchParams }: Props) {
 
             {/* Search */}
             <form method="GET" style={{ marginBottom: 12 }}>
-              {searchParams.category && (
-                <input type="hidden" name="category" value={searchParams.category} />
+              {sp.category && (
+                <input type="hidden" name="category" value={sp.category} />
               )}
               <div style={{ position: 'relative' }}>
                 <Search style={{
@@ -101,7 +111,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                 <input
                   type="text"
                   name="search"
-                  defaultValue={searchParams.search || ''}
+                  defaultValue={sp.search || ''}
                   placeholder="Buscar produtos..."
                   style={{
                     width: '100%', boxSizing: 'border-box',
@@ -137,7 +147,7 @@ export default async function ProductsPage({ searchParams }: Props) {
 
               <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0' }}>
                 {[{ id: 'all', name: 'Todos os produtos', slug: '' }, ...categories].map((cat: any) => {
-                  const isActive = cat.slug === '' ? !searchParams.category : searchParams.category === cat.slug;
+                  const isActive = cat.slug === '' ? !sp.category : sp.category === cat.slug;
                   return (
                     <li key={cat.id}>
                       <a
@@ -231,8 +241,8 @@ export default async function ProductsPage({ searchParams }: Props) {
                   Nenhum produto encontrado
                 </p>
                 <p style={{ fontSize: 13, color: '#565959', margin: '0 0 24px', maxWidth: 340, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>
-                  {searchParams.search
-                    ? `Nao encontramos resultados para "${searchParams.search}" nesta categoria.`
+                  {sp.search
+                    ? `Nao encontramos resultados para "${sp.search}" nesta categoria.`
                     : 'Esta categoria ainda nao possui produtos cadastrados. Confira os outros departamentos.'}
                 </p>
                 <a
@@ -269,8 +279,8 @@ export default async function ProductsPage({ searchParams }: Props) {
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24, gap: 4 }}>
                 {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map(p => {
                   const params = new URLSearchParams({
-                    ...(searchParams.category ? { category: searchParams.category } : {}),
-                    ...(searchParams.search   ? { search: searchParams.search }     : {}),
+                    ...(sp.category ? { category: sp.category } : {}),
+                    ...(sp.search   ? { search: sp.search }     : {}),
                     page: String(p),
                   });
                   return (
