@@ -1,11 +1,11 @@
 import Link from 'next/link';
 
-export default function CheckoutSuccessPage({
+export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams: { order?: string };
+  searchParams: Promise<{ order?: string }>;
 }) {
-  const orderId = searchParams.order;
+  const { order: orderId } = await searchParams;
 
   return (
     <div className="container-custom py-24 text-center max-w-lg mx-auto">
