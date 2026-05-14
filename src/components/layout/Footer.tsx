@@ -36,11 +36,12 @@ const SOCIALS = [
 ];
 
 const PAYMENTS = [
-  { label: 'PIX',          accent: '#06b6d4' },
-  { label: 'CRÉDITO',      accent: '#a3a3a3' },
-  { label: 'DÉBITO',       accent: '#a3a3a3' },
-  { label: 'BOLETO',       accent: '#a3a3a3' },
-  { label: 'MERCADO PAGO', accent: '#06b6d4' },
+  { src: '/pagamentos/MP_RGB_HANDSHAKE_color_horizontal.svg', alt: 'Mercado Pago', width: 80 },
+  { src: '/pagamentos/pix-2.svg',                             alt: 'Pix',          width: 36 },
+  { src: '/pagamentos/visa-10.svg',                           alt: 'Visa',         width: 44 },
+  { src: '/pagamentos/mastercard-modern-design-.svg',         alt: 'Mastercard',   width: 36 },
+  { src: '/pagamentos/elo-svgrepo-com.svg',                   alt: 'Elo',          width: 36 },
+  { src: '/pagamentos/boleto-seeklogo.png',                   alt: 'Boleto',       width: 52 },
 ];
 
 export function Footer() {
@@ -260,22 +261,24 @@ export function Footer() {
           {/* Pagamentos */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
             {PAYMENTS.map(p => (
-              <span key={p.label} style={{
-                padding: '3px 9px',
-                background: 'rgba(255,255,255,0.04)',
+              <div key={p.alt} style={{
+                padding: '5px 10px',
+                background: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 4,
-                fontSize: 10, fontWeight: 700,
-                color: 'rgba(255,255,255,0.45)',
-                letterSpacing: '0.06em',
-                fontFamily: 'var(--font-mono)',
+                borderRadius: 6,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                height: 34,
               }}>
-                {p.label}
-              </span>
+                <Image
+                  src={p.src}
+                  alt={p.alt}
+                  width={p.width}
+                  height={24}
+                  style={{ objectFit: 'contain', height: 20, width: 'auto' }}
+                />
+              </div>
             ))}
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              🔒 Compra segura
-            </span>
+            
           </div>
 
           {/* Copyright + voltar ao topo */}
