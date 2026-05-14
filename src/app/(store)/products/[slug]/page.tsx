@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 
-interface Props { params: { slug: string } }
+interface Props { params: Promise<{ slug: string }> }
 
 async function getProduct(slug: string) {
   const supabase = createAdminClient();
@@ -21,7 +21,8 @@ async function getProduct(slug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await getProduct(params.slug);
+  const { slug } = await params;
+  const product = await getProduct(slug);
   if (!product) return { title: 'Produto não encontrado' };
   return {
     title: product.name,
@@ -30,7 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const product = await getProduct(params.slug);
+  const { slug } = await params;
+  const product = await getProduct(slug);
   if (!product) notFound();
 
   const discount = product.compare_price
